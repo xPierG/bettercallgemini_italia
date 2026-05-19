@@ -1,0 +1,19 @@
+# Build outputs
+node_modules/
+dist/
+*.zip
+
+# Dev artifacts
+legal-briefing-workspace/
+*.html
+*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
