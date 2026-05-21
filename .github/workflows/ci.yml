@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate plugin manifests
+        run: node scripts/validate-plugin.js
+
+      - name: Validate privacy hook
+        run: node bettercallclaude_italia/scripts/privacy-check.test.js
+
+      - name: Check version alignment
+        run: |
+          MARKETPLACE_VERSION=$(node -p "require('./.claude-plugin/marketplace.json').plugins[0].version")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PLUGIN_VERSION=$(node -p "require('./bettercallclaude_italia/.claude-plugin/plugin.json').version")
+          echo "marketplace.json: $MARKETPLACE_VERSION"
+          echo "package.json:     $PACKAGE_VERSION"
+          echo "plugin.json:      $PLUGIN_VERSION"
+          if [ "$MARKETPLACE_VERSION" != "$PACKAGE_VERSION" ] || [ "$PACKAGE_VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "ERROR: Versions are not aligned!"
+            exit 1
+          fi
+          echo "✅ All versions aligned: $PACKAGE_VERSION"

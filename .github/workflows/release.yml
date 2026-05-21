@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Validate version alignment
+        run: |
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+          MARKETPLACE_VERSION=$(node -p "require('./.claude-plugin/marketplace.json').plugins[0].version")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PLUGIN_VERSION=$(node -p "require('./bettercallclaude_italia/.claude-plugin/plugin.json').version")
+          if [ "$MARKETPLACE_VERSION" != "$VERSION" ] || [ "$PACKAGE_VERSION" != "$VERSION" ] || [ "$PLUGIN_VERSION" != "$VERSION" ]; then
+            echo "ERROR: Tag version $VERSION does not match manifest versions!"
+            echo "marketplace.json: $MARKETPLACE_VERSION"
+            echo "package.json:     $PACKAGE_VERSION"
+            echo "plugin.json:      $PLUGIN_VERSION"
+            exit 1
+          fi
+          echo "✅ Version alignment confirmed: $VERSION"
+
+      - name: Build Ollama bundle
+        run: npm run build:ollama
+
+      - name: Package plugin
+        run: npm run package
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "v${{ steps.get_version.outputs.VERSION }}"
+          body_path: CHANGELOG.md
+          files: |
+            dist/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

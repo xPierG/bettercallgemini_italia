@@ -1,0 +1,21 @@
+{
+  "name": "bettercallclaude-italia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Italian Legal Intelligence Plugin for Claude",
+  "scripts": {
+    "build:ollama": "cd bettercallclaude_italia/mcp-servers/ollama && npm install && npm run build:bundle",
+    "package": "bash scripts/package-plugin.sh",
+    "validate": "node scripts/validate-plugin.js",
+    "test": "node bettercallclaude_italia/scripts/privacy-check.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedec65/bettercallclaude_italia"
+  },
+  "author": "Federico Cesconi",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
