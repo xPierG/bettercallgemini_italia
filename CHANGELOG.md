@@ -4,6 +4,27 @@ All notable changes to BetterCallClaude Italia will be documented in this file.
 
 ---
 
+## [1.0.4] - 2026-05-21
+
+### Security
+- **Privacy hook: strong patterns now DENY (block)** instead of ASK. Content matching strong privilege indicators (segreto professionale, Art. 622 CP, attorney-client privilege, etc.) is now blocked outright rather than requesting confirmation.
+- **Added Bash to hook matcher** — shell commands (`curl`, `cat | nc`, etc.) are now intercepted by the privacy hook, preventing data exfiltration via Bash tool.
+- **Added privacy_mode userConfig** — three modes: `strict` (confirm all + block strong), `balanced` (block strong + ask weak with context), `cloud` (block strong only). Default: `balanced`.
+
+### Added
+- **7 new strong patterns**: vincolo di riservatezza, obbligo di riservatezza, segreto istruttorio, segreto investigativo, riservatezza professionale, tutela del segreto, comunicazione privilegiata.
+- **3 new English strong patterns**: legally privileged, privileged and confidential, protected by privilege.
+- **2 new article references**: Art. 200 CPP (segreto professionale testimonianza), Art. 103 CPP (garanzie del difensore).
+- **2 new weak patterns**: non divulgare, uso interno.
+- **New discriminators**: tribunale, corte, giudice, parte avversa, controparte.
+
+### Changed
+- **Documentation toned down**: "conformità integrata al segreto professionale" replaced with "assistenza al rilevamento del segreto professionale" in README, aiuto.md, plugin.json, and marketplace.json.
+- Added privacy disclaimer to README and aiuto.md: "L'hook privacy è una tecnologia assistiva e non garantisce la conformità."
+- Test suite expanded from 22 to 56 tests covering all three modes, new patterns, and decision logic.
+
+---
+
 ## [1.0.3] - 2026-05-23
 
 ### Changed

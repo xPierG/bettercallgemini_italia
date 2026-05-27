@@ -107,13 +107,17 @@ Sei invocato tramite `/bettercallclaude-italia:aiuto`. Mostra il riferimento com
 
 ## Privacy
 
-BetterCallClaude Italia include conformità integrata al segreto professionale (tutela privilegio avvocato-cliente, Art. 622 CP). L'hook PreToolUse scansiona le chiamate tool in uscita per indicatori di privilegio in italiano (segreto professionale, confidenziale, riservato) e inglese (privileged, confidential).
+BetterCallClaude Italia include un hook PreToolUse di assistenza al rilevamento del segreto professionale (Art. 622 CP, Art. 9 D.Lgs. 96/2001). L'hook scansiona le chiamate tool in uscita (Write, Edit, MultiEdit, WebFetch, Bash e tutti i tool MCP) per indicatori di privilegio in italiano e inglese.
 
 | Modalità | Comportamento |
 |------|----------|
-| `strict` | Tutte le chiamate esterne richiedono conferma. Preferisci elaborazione locale. |
-| `balanced` | Contenuto privilegiato attiva conferma. Contenuto non privilegiato elaborato normalmente. |
-| `cloud` | Elaborazione cloud standard con hook privacy attivo solo per marcatori espliciti di privilegio. |
+| `strict` | Tutte le chiamate esterne richiedono conferma. Contenuto con indicatori forti di privilegio viene **bloccato**. |
+| `balanced` | Contenuto con indicatori forti di privilegio viene **bloccato**. Indicatori deboli con contesto legale richiedono conferma. Contenuto non privilegiato elaborato normalmente. |
+| `cloud` | Solo indicatori forti di privilegio attivano il blocco. Nessun controllo su indicatori deboli. |
+
+La modalità si configura in **Personalizza > Plugin > BetterCallClaude Italia > Impostazioni > Modalità privacy** (default: `balanced`).
+
+> **Nota**: L'hook privacy è una tecnologia assistiva e non garantisce la conformità all'Art. 622 CP o all'Art. 9 D.Lgs. 96/2001. Gli avvocati restano professionalmente responsabili della protezione della confidenzialità del cliente.
 
 ## Disclaimer Professionale
 
