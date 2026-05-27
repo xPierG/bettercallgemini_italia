@@ -215,6 +215,21 @@ t('ignores invalid .privacy-mode file content', () => {
   }
 });
 
+t('reads .privacy-mode from data.cwd instead of process.cwd()', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'privacy-test-'));
+  const filePath = path.join(tmpDir, '.privacy-mode');
+  try {
+    fs.writeFileSync(filePath, 'cloud');
+    assert.strictEqual(resolveMode({ cwd: tmpDir }), 'cloud');
+  } finally {
+    try { fs.unlinkSync(filePath); } catch (_) {}
+    try { fs.rmdirSync(tmpDir); } catch (_) {}
+  }
+});
+
 // ---------------------------------------------------------------------------
 // decide -- balanced mode (default)
 // ---------------------------------------------------------------------------

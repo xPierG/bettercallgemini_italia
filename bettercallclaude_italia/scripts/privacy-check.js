@@ -89,7 +89,7 @@ function resolveMode(data) {
   try {
     const fs = require('fs');
     const path = require('path');
-    const filePath = path.join(process.cwd(), '.privacy-mode');
+    const filePath = path.join(data.cwd || process.cwd(), '.privacy-mode');
     const fromFile = fs.readFileSync(filePath, 'utf8').trim().toLowerCase();
     if (VALID_MODES.includes(fromFile)) return fromFile;
   } catch (_) { /* file not found or unreadable — use default */ }
