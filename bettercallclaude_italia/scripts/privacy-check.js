@@ -8,8 +8,9 @@
  * or any MCP tool.
  *
  * Modes (configurable via userConfig.privacy_mode):
- *   - strict:   All outbound tool calls are DENIED (blocked),
- *               EXCEPT mcp__ollama__* which is local and always allowed.
+ *   - strict:   Strong/weak patterns trigger DENY (blocked).
+ *               Non-privileged content passes through (cloud MCP servers usable).
+ *               mcp__ollama__* is always allowed (local).
  *   - balanced: Strong patterns trigger ASK (user confirms).
  *               Weak patterns with discriminator trigger ASK.
  *               No-match content passes through.
@@ -69,9 +70,15 @@ function main() {
     const content = extractTextFromInput(toolName, toolInput);
     const pathHint = extractPathHint(toolInput);
 
-    if (!content.trim() && mode !== 'strict') { process.exit(0); }
+    // NEW-2: extract file paths referenced in Bash commands and check
+    // them against discriminators (curl @file, cat file | nc, etc.)
+    const bashPaths = (toolName === 'Bash' || toolName === 'bash')
+      ? extractBashFilePaths(typeof toolInput.command === 'string' ? toolInput.command : '')
+      : [];
 
-    const result = decide(content, pathHint, mode);
+    if (!content.trim() && !bashPaths.length && mode !== 'strict') { process.exit(0); }
+
+    const result = decide(content, pathHint, mode, bashPaths);
     if (!result) { process.exit(0); }
 
     process.stdout.write(JSON.stringify({
@@ -90,22 +97,29 @@ function main() {
 // ---------------------------------------------------------------------------
 
 const VALID_MODES = ['strict', 'balanced', 'cloud'];
+const MODE_SEVERITY = { cloud: 0, balanced: 1, strict: 2 };
+const DEFAULT_MODE = 'balanced';
 
 function resolveMode(data) {
   const cfg = data.userConfig || data.user_config || {};
   const fromConfig = (typeof cfg.privacy_mode === 'string' ? cfg.privacy_mode : '').toLowerCase().trim();
   if (VALID_MODES.includes(fromConfig)) return fromConfig;
 
-  // Fallback: read .privacy-mode file from CWD (written by /privacy command)
+  // Fallback: read .privacy-mode file from CWD (written by /privacy command).
+  // Security (NEW-1): the file can only RAISE severity above the default
+  // (balanced). A file containing "cloud" is ignored — an attacker who
+  // deposits a .privacy-mode file cannot silently lower protection.
   try {
     const fs = require('fs');
     const path = require('path');
     const filePath = path.join(data.cwd || process.cwd(), '.privacy-mode');
     const fromFile = fs.readFileSync(filePath, 'utf8').trim().toLowerCase();
-    if (VALID_MODES.includes(fromFile)) return fromFile;
+    if (VALID_MODES.includes(fromFile) && MODE_SEVERITY[fromFile] >= MODE_SEVERITY[DEFAULT_MODE]) {
+      return fromFile;
+    }
   } catch (_) { /* file not found or unreadable — use default */ }
 
-  return 'balanced';
+  return DEFAULT_MODE;
 }
 
 // ---------------------------------------------------------------------------
@@ -120,19 +134,39 @@ function isLocalTool(toolName) {
 // Decision logic
 // ---------------------------------------------------------------------------
 
-function decide(content, pathHint, mode) {
+function decide(content, pathHint, mode, bashPaths) {
   const category = classify(content, pathHint);
 
+  // NEW-2: check if any Bash file path hits a discriminator
+  const bashPathHit = (bashPaths || []).some((p) => DISCRIMINATOR_PATH.test(p));
+
   if (mode === 'strict') {
+    // NEW-3: strict now uses pattern-based deny instead of blanket deny.
+    // Content without privileged markers passes through, so the 7 cloud
+    // MCP servers remain usable for non-privileged research.
+    if (!category && !bashPathHit) return null;
     return {
       decision: 'deny',
-      reason: category
-        ? `BLOCCATO: contenuto soggetto a segreto professionale (categoria: ${category}). ` +
-          'Modalita strict: tutte le chiamate esterne sono bloccate. ' +
-          'Usare Ollama (locale) per elaborare contenuto privilegiato.'
-        : 'BLOCCATO: modalita strict attiva. Tutte le chiamate esterne sono bloccate. ' +
+      reason: bashPathHit && !category
+        ? 'BLOCCATO: comando shell referenzia file in directory privilegiata. ' +
+          'Modalita strict: esfiltrazione di contenuto privilegiato bloccata. ' +
+          'Art. 622 CP / L. 247/2012, CDF Art. 13.'
+        : `BLOCCATO: contenuto soggetto a segreto professionale (categoria: ${category}). ` +
+          'Modalita strict: contenuto privilegiato non puo lasciare la macchina. ' +
           'Art. 622 CP / L. 247/2012, CDF Art. 13. ' +
           'Usare Ollama (locale) per elaborare contenuto privilegiato.',
+    };
+  }
+
+  // NEW-2: in balanced, Bash commands referencing privileged paths trigger ask
+  if (bashPathHit && !category) {
+    if (mode === 'cloud') return null;
+    return {
+      decision: 'ask',
+      reason:
+        'Comando shell referenzia file in directory privilegiata. ' +
+        'Diritto italiano: Art. 622 CP / L. 247/2012, CDF Art. 13. ' +
+        'Confermare che il contenuto del file puo lasciare la macchina.',
     };
   }
 
@@ -205,6 +239,30 @@ function extractPathHint(input) {
     if (typeof input[k] === 'string') return input[k];
   }
   return '';
+}
+
+/**
+ * NEW-2: Extract file paths referenced in a Bash command string.
+ * Catches patterns like: curl @file, curl --data-binary @file,
+ * cat file | ..., head/tail/less/base64 file, input redirect < file.
+ */
+function extractBashFilePaths(cmd) {
+  const paths = [];
+  const patterns = [
+    // curl @file or curl --data-binary @file
+    /@(\/[^\s;|&"']+)/g,
+    // input redirect: < /path/to/file
+    /<\s*(\/[^\s;|&"']+)/g,
+    // cat, head, tail, less, base64, xxd followed by absolute path
+    /\b(?:cat|head|tail|less|base64|xxd|strings|file|wc)\s+(\/[^\s;|&"']+)/g,
+  ];
+  for (const rx of patterns) {
+    let m;
+    while ((m = rx.exec(cmd)) !== null) {
+      paths.push(m[1]);
+    }
+  }
+  return paths;
 }
 
 function walkStrings(node, emit, depth) {
@@ -314,10 +372,12 @@ module.exports = {
   isLocalTool,
   extractTextFromInput,
   extractPathHint,
+  extractBashFilePaths,
   hasDiscriminator,
   isStrongCategory,
   STRONG_PATTERNS,
   WEAK_PATTERNS,
+  MODE_SEVERITY,
 };
 
 if (require.main === module) {

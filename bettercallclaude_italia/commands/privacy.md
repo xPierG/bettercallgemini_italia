@@ -25,6 +25,7 @@ Modalita corrente: **[balanced]**
 | Modalita | Pattern forti | Pattern deboli+contesto | Ollama |
 |----------|--------------|------------------------|--------|
 | strict | BLOCCATO (deny) | BLOCCATO (deny) | Sempre permesso |
+|        | Contenuto non privilegiato passa (server MCP cloud usabili) | | |
 | **balanced** | Conferma richiesta (ask) | Conferma richiesta (ask) | Sempre permesso |
 | cloud | Conferma richiesta (ask) | Permesso senza prompt | Sempre permesso |
 
@@ -45,7 +46,7 @@ Quando l'utente specifica una modalita:
 
 1. Valida che l'argomento sia `strict`, `balanced` o `cloud` (case-insensitive).
 2. Se non valido, mostra errore e le opzioni disponibili.
-3. Se valido, **scrivi la modalita nel file `.privacy-mode`** nella directory del progetto corrente (`$CWD/.privacy-mode`). Il file contiene solo la parola della modalita (es. `strict`).
+3. Se valido, **scrivi la modalita nel file `.privacy-mode`** nella directory del progetto corrente (`$CWD/.privacy-mode`). Il file contiene solo la parola della modalita (es. `strict`). **Nota**: il file puo solo alzare la severita rispetto al default `balanced`, mai abbassarla (un file con `cloud` viene ignorato per sicurezza).
 4. Conferma il cambio all'utente:
 
 ```
@@ -58,7 +59,7 @@ L'hook PreToolUse usera questa modalita per le prossime chiamate tool.
 
 Quando l'utente chiede quale modalita usare, consiglia:
 
-- **strict** -- Per lavoro su contenuto altamente privilegiato. Tutte le chiamate esterne sono bloccate. Usare Ollama per elaborazione locale sicura.
+- **strict** -- Per lavoro su contenuto altamente privilegiato. Le chiamate contenenti pattern privilegiati sono bloccate. Il contenuto non privilegiato passa normalmente (i server MCP cloud restano usabili per la ricerca). Ollama sempre permesso.
 - **balanced** (default) -- Per uso quotidiano. L'hook chiede conferma quando rileva contenuto potenzialmente privilegiato. L'utente mantiene il controllo.
 - **cloud** -- Per lavoro su contenuto non sensibile. Solo i pattern forti generano un avviso.
 
