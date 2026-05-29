@@ -9,10 +9,12 @@ import {
 const OLLAMA_HOST = process.env.OLLAMA_HOST || "http://localhost:11434";
 
 // Validate OLLAMA_HOST is localhost to prevent SSRF (C1)
+// NEW-4: URL("http://[::1]:port").hostname returns "[::1]" (with brackets)
 try {
   const parsedUrl = new URL(OLLAMA_HOST);
+  const hostname = parsedUrl.hostname.replace(/^\[|\]$/g, "");
   const allowed = ["localhost", "127.0.0.1", "::1"];
-  if (!allowed.includes(parsedUrl.hostname)) {
+  if (!allowed.includes(hostname)) {
     console.error(
       `OLLAMA_HOST must point to localhost. Got: ${parsedUrl.hostname}. ` +
       `Allowed hostnames: ${allowed.join(", ")}`
