@@ -90,6 +90,11 @@ Prima di inviare qualsiasi contenuto a un servizio cloud, rimuovi o sostituisci:
 - [ ] Nomi delle parti avverse
 - [ ] Nomi dei giudici o giudici specifici (se identificativi)
 
+## Limitazioni Note
+
+- **Elusione keyword**: il rilevamento è basato su pattern regex e non cattura concatenazioni senza spazi (`segretoprofessionale`), varianti accentate (`segrèto`), contenuto in altre lingue (DE/FR), encoding base64, né contenuto privilegiato senza marcatori espliciti. Il modello di minaccia principale è la fuga accidentale, non l'attaccante determinato.
+- **Bash file content**: l'hook analizza i path referenziati nei comandi Bash ma non legge il contenuto dei file. La protezione completa contro esfiltrazione via shell richiede la modalità `strict`.
+
 ## Disclaimer Professionale
 
 > Il routing privacy è una tecnologia assistiva e non garantisce la conformità all'Art. 622 CP o alla L. 247/2012 / CDF Art. 13. Gli avvocati restano professionalmente responsabili della protezione della confidenzialità del cliente.

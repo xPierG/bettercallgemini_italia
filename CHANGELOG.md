@@ -4,6 +4,20 @@ All notable changes to BetterCallClaude Italia will be documented in this file.
 
 ---
 
+## [1.0.6] - 2026-05-29
+
+### Security
+- **NEW-1: Mode downgrade prevention** — `.privacy-mode` file can only raise severity above the default (`balanced`). A file containing `cloud` is now ignored, preventing silent downgrade by attacker-deposited files (cloned repos, shared directories).
+- **NEW-2: Bash file path analysis** — Privacy hook now extracts file paths referenced in Bash commands (`curl @file`, `cat file | nc`, `< file` redirects) and checks them against path discriminators. Commands referencing files in privileged directories (e.g. `/fascicoli/`, `/clienti/`) trigger `ask` in balanced mode and `deny` in strict mode.
+- **NEW-3: Strict mode no longer disables the product** — `strict` now uses pattern-based deny instead of blanket deny. Non-privileged content passes through, keeping the 7 cloud MCP servers (Cassazione, Normattiva, etc.) usable for research. Privileged content is still blocked.
+- **NEW-6: CI workflow pinned to SHA** — `ci.yml` now uses commit SHA-pinned actions (was only `release.yml`).
+
+### Fixed
+- **NEW-4: IPv6 localhost** — `OLLAMA_HOST` validation now correctly accepts `http://[::1]:11434` (URL parser returns hostname with brackets; allowlist check now strips them).
+- **v1.0.5 CHANGELOG correction** — Bash coverage claim revised: the hook inspects command strings and referenced file paths, but does not read file contents. Full exfiltration prevention requires `strict` mode.
+
+---
+
 ## [1.0.5] - 2026-05-28
 
 ### Security

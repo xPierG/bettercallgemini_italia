@@ -113,10 +113,11 @@ BetterCallClaude Italia include un hook PreToolUse di assistenza al rilevamento 
 | Modalità | Pattern forti | Pattern deboli+contesto | Ollama |
 |------|--------------|------------------------|--------|
 | `strict` | **Bloccato** (deny) | **Bloccato** (deny) | Sempre permesso |
+|          | Contenuto non privilegiato passa (server MCP cloud usabili) | | |
 | `balanced` | **Conferma richiesta** (ask) | **Conferma richiesta** (ask) | Sempre permesso |
 | `cloud` | **Conferma richiesta** (ask) | Permesso senza prompt | Sempre permesso |
 
-La modalità si configura con `/bettercallclaude-italia:privacy strict|balanced|cloud` (default: `balanced`). In modalità `strict`, usare Ollama per elaborare contenuto privilegiato.
+La modalità si configura con `/bettercallclaude-italia:privacy strict|balanced|cloud` (default: `balanced`). In modalità `strict`, il contenuto privilegiato è bloccato ma le chiamate senza pattern privilegiati passano normalmente (i server MCP cloud restano usabili per la ricerca). Usare Ollama per elaborare contenuto privilegiato in sicurezza.
 
 > **Nota**: L'hook privacy è una tecnologia assistiva e non garantisce la conformità all'Art. 622 CP o alla L. 247/2012 / CDF Art. 13. Gli avvocati restano professionalmente responsabili della protezione della confidenzialità del cliente.
 
