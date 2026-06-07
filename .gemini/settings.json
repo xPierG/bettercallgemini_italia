@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "mcp-cassazione": {
+      "httpUrl": "https://mcp-italia.bettercallclaude.ch/cassazione/mcp"
+    },
+    "mcp-normattiva": {
+      "httpUrl": "https://mcp-italia.bettercallclaude.ch/normattiva/mcp"
+    },
+    "mcp-corte-costituzionale": {
+      "httpUrl": "https://mcp-italia.bettercallclaude.ch/corte-costituzionale/mcp"
+    },
+    "mcp-giustizia-amministrativa": {
+      "httpUrl": "https://mcp-italia.bettercallclaude.ch/giustizia-amministrativa/mcp"
+    },
+    "mcp-eur-lex-ita": {
+      "httpUrl": "https://mcp-italia.bettercallclaude.ch/eur-lex-ita/mcp"
+    },
+    "mcp-legal-citations-ita": {
+      "httpUrl": "https://mcp-italia.bettercallclaude.ch/legal-citations-ita/mcp"
+    },
+    "mcp-legal-persona-ita": {
+      "httpUrl": "https://mcp-italia.bettercallclaude.ch/legal-persona-ita/mcp"
+    }
+  }
+}
