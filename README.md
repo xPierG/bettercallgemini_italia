@@ -37,8 +37,8 @@ La skill è progettata per essere utilizzata sfruttando il modello "workspace" d
 1. **Requisiti:** Assicurati di aver installato il `gemini-cli` sul tuo sistema.
 2. **Clona il Repository:**
    ```bash
-   git clone https://github.com/fedec65/bettercallclaude_italia.git
-   cd bettercallclaude_italia
+   git clone https://github.com/xPierG/bettercallgemini_italia.git
+   cd bettercallgemini_italia
    ```
 3. **Avvia Gemini CLI:**
    Avvia semplicemente il comando `gemini` dall'interno della directory del progetto. Il CLI rileverà automaticamente la skill locale nella directory `italian-legal-research` e applicherà la configurazione dei server MCP contenuta in `.gemini/settings.json`:
